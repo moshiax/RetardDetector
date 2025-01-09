@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>retarddetector</title>
+  <style>
+body {
+  background-color: #000000;
+  font-family: 'Roboto Mono', monospace;
+  color: #E0E0E0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+}
+
+#editor {
+    position: relative;
+    background-color: rgba(51, 51, 51, 0.25); 
+    color: #E0E0E0;
+    border: 1px solid #444444;
+    padding: 10px;
+    width: 80%;
+    min-height: 150px;
+    border-radius: 5px;
+    white-space: pre-wrap;
+    text-decoration: none;
+    -webkit-user-modify: read-write-plaintext-only;
+    height: auto;
+    resize: none;
+	transition: all 0.3s ease; 
+	line-height: 1.6; 
+}
+
+#clownCount {
+    position: inherit;
+    margin-top: 30px;
+    font-size: 2rem;
+    z-index: 999;
+	max-width: 90%;
+    pointer-events: none;
+}
+
+.highlight {
+  background-color: #FF5722;
+  color: #000;
+  font-weight: bold;
+  border-radius: 4px; 
+  padding: 2px 4px; 
+  transition: all 0.3s ease; 
+}
+
+.highlight:hover {
+  background-color: #FF3D00; 
+  transform: scale(1.05); 
+}
+
+.notification {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  font-size: 1.5rem;
+  text-align: center;
+  z-index: 10000000;
+  animation: fadeIn 0.5s ease-in-out, fadeOut 0.5s ease-in-out 1s;
+}
+
+@media (min-width: 768px) {
+  body {
+    font-size: 24px;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+}
+
+  </style>
+</head>
+<body>
+<div id="editor" contenteditable="true" spellcheck="false" placeholder="Введите текст для проверки..."></div>
+
+<div id="clownCount"></div>
+
+<div class="notification" id="notification"></div>
+  <script>
+	retardedKeywords = [
+		'free palestine', 'trans', 'they/them', 'she/her', 
+		'she/he', 'xe/xem', 'ze/zir', 'ey/em', '🇵🇸', '🏳️‍⚧️', 'any/all', '🏳️‍🌈', 'pronouns', 'транс', 'FreePalestine', 'they', 'LGBTQ', 'free Palestine',
+		'𝐋𝐆𝐁𝐓', '𝗟𝗚𝗕𝗧', '𝐿𝐺𝐵𝑇', '𝑳𝑮𝑩𝑻', '𝗟𝗚𝗕𝗧', 
+		'gender fluid', 'nonbinary', 'cis', 'cisgender', 'genderqueer', 'agender', 'bigender', 'two-spirit', 'binary', 'gender-neutral',
+		'intersectionality', 'queer', 'fluidity', 'neopronouns', 'demiboy', 'demigirl', 'fae/faer', 'it/its', 'she/her', 'they/them',
+		'🏳️‍⚧', '🌈', 'pride', 'pridemonth', 'transgender', 'transsexual', ' HRT ', '𝘁𝗵𝗲𝘆', 'Pansexual', 'Polyamorous', 'гомофоб', 'трансфоб', 'фетфоб', 'ейджист',
+		'ейбліст', 'мізогін', 'слюр',
+		'INTJ', 'INTP', 'ENTJ', 'ENTP', 'INFJ', 'INFP', 'ENFJ', 'ENFP',
+		'ISFJ', 'ISFP', 'ESFJ', 'ESFP', 'ISTJ', 'ISTP', 'ESTJ', 'ESTP',
+		'INTJ-A', 'INTJ-T', 'INTP-A', 'INTP-T', 'ENTJ-A', 'ENTJ-T', 'ENTP-A', 'ENTP-T',
+		'INFJ-A', 'INFJ-T', 'INFP-A', 'INFP-T', 'ENFJ-A', 'ENFJ-T', 'ENFP-A', 'ENFP-T',
+		'ISFJ-A', 'ISFJ-T', 'ISFP-A', 'ISFP-T', 'ESFJ-A', 'ESFJ-T', 'ESFP-A', 'ESFP-T', 
+		'ISTJ-A', 'ISTJ-T', 'ISTP-A', 'ISTP-T', 'ESTJ-A', 'ESTJ-T', 'ESTP-A', 'ESTP-T'
+	];
+	  </script>
+<script>
+const editor = document.getElementById('editor');
+const clownCount = document.getElementById('clownCount');
+let clown = 0; 
+
+const highlightText = () => {
+  const text = editor.innerText;
+  let highlightedText = text;
+
+  clown = 0;
+
+  highlightedText = retardedKeywords.reduce((acc, word) => {
+    const regex = new RegExp(`(${word})`, 'gi');
+    const matches = acc.match(regex);
+    if (matches) {
+      clown += matches.length; 
+    }
+    return acc.replace(regex, '<span class="highlight">$1</span>');
+  }, text);
+
+  editor.innerHTML = highlightedText;
+  placeCaretAtEnd(editor);
+  clownCount.innerHTML = '🤡'.repeat(clown); 
+};
+
+const placeCaretAtEnd = (el) => {
+  const range = document.createRange();
+  const sel = window.getSelection();
+  range.selectNodeContents(el);
+  range.collapse(false);
+  sel.removeAllRanges();
+  sel.addRange(range);
+};
+
+editor.addEventListener('input', highlightText);
+
+</script>
