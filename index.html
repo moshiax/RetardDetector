@@ -1,157 +1,395 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>retarddetector</title>
   <style>
-body {
-  background-color: #000000;
-  font-family: 'Roboto Mono', monospace;
-  color: #E0E0E0;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  margin: 0;
-}
+    body {
+      background-color: #000000;
+      font-family: 'Roboto Mono', monospace;
+      color: #E0E0E0;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
 
-#editor {
+    #editor {
+      position: relative;
+      background-color: rgba(51, 51, 51, 0.25);
+      color: #E0E0E0;
+      border: 1px solid #444444;
+      padding: 10px;
+      width: 80%;
+      min-height: 150px;
+      border-radius: 5px;
+      white-space: pre-wrap;
+      text-decoration: none;
+      -webkit-user-modify: read-write-plaintext-only;
+      height: auto;
+      resize: none;
+      transition: all 0.3s ease;
+      line-height: 1.6;
+    }
+
+    #clownCount {
+      position: relative;
+      margin-top: 10px;
+      font-size: 2rem;
+      z-index: 999;
+      max-width: 90%;
+      pointer-events: none;
+    }
+
+    .highlight {
+      background-color: #FF5722;
+      color: #000;
+      font-weight: bold;
+      border-radius: 4px;
+      padding: 2px 4px;
+      transition: all 0.3s ease;
+    }
+
+    .highlight:hover {
+      background-color: #FF3D00;
+      transform: scale(1.05);
+    }
+
+	.notification {
+		display: none;
+		position: fixed;
+		bottom: 20px;
+		left: 50%;
+		transform: translateX(-50%);
+		padding: 20px;
+		background-color: rgba(0, 0, 0, .8);
+		color: #fff;
+		border-radius: 10px;
+		box-shadow: 0 0 15px rgba(0, 0, 0, .5);
+		font-size: 1.5rem;
+		text-align: center;
+		z-index: 10000000;
+		animation: fadeIn .5s ease-in-out, fadeOut .5s ease-in-out 1s;
+	}
+
+    @media (min-width: 768px) {
+      body {
+        font-size: 24px;
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+      }
+    }
+
+    #modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      justify-content: center;
+      align-items: center;
+      color: #E0E0E0;
+      z-index: 99999999;
+      font-size: 1.2rem;
+    }
+
+    #modalContent {
+      background-color: #333;
+      padding: 20px;
+      border-radius: 10px;
+      max-height: 80%;
+      overflow-y: auto;
+    }
+
+    #closeModal {
+      margin-top: 10px;
+      color: #FF5722;
+      cursor: pointer;
+      font-size: 1.5rem;
+    }
+	button {
     position: relative;
-    background-color: rgba(51, 51, 51, 0.25); 
+    background-color: rgba(51, 51, 51, 0.25);
     color: #E0E0E0;
     border: 1px solid #444444;
-    padding: 10px;
-    width: 80%;
-    min-height: 150px;
+	margin-top: 10px;
+    padding: 10px 20px;
     border-radius: 5px;
-    white-space: pre-wrap;
-    text-decoration: none;
-    -webkit-user-modify: read-write-plaintext-only;
-    height: auto;
-    resize: none;
-	transition: all 0.3s ease; 
-	line-height: 1.6; 
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-#clownCount {
-    position: inherit;
-    margin-top: 30px;
-    font-size: 2rem;
-    z-index: 999;
-	max-width: 90%;
-    pointer-events: none;
+button:hover {
+    background-color: rgba(51, 51, 51, 35);
+    border-color: #666666;
+    color: #FFFFFF;
 }
 
-.highlight {
-  background-color: #FF5722;
-  color: #000;
-  font-weight: bold;
-  border-radius: 4px; 
-  padding: 2px 4px; 
-  transition: all 0.3s ease; 
+button:active {
+    transform: scale(0.95);
+    background-color: rgba(51, 51, 51, 0.45);
 }
 
-.highlight:hover {
-  background-color: #FF3D00; 
-  transform: scale(1.05); 
+button:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
-.notification {
-  display: none;
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 20px;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-  font-size: 1.5rem;
-  text-align: center;
-  z-index: 10000000;
-  animation: fadeIn 0.5s ease-in-out, fadeOut 0.5s ease-in-out 1s;
+.suggest-notification {
+	    transition: all 0.3s ease-in-out;
+	    padding: 10px;
+	    border-radius: 5px;
+	    font-family: Arial, sans-serif;
+	    font-size: 14px;
+	    z-index: 1000;
+		display: none;
+		background-color: rgba(0, 0, 0, .8);
+		color: #fff;
+		box-shadow: 0 0 15px rgba(0, 0, 0, .5);
+		font-size: 1.5rem;
+		text-align: center;
+		z-index: 10000000;
+}
+.suggest-notification button {
+  background-color: #444;
+  color: white;
+  border: none;
+  margin: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-@media (min-width: 768px) {
-  body {
-    font-size: 24px;
-  }
+#yesButton {
+  background-color: rgba(0, 255, 0, 0.2);
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
+#noButton {
+  background-color: rgba(255, 0, 0, 0.2);
 }
 
-@keyframes fadeOut {
-  from {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateX(-50%) translateY(20px);
-  }
+.suggest-notification button:hover {
+  background-color: rgba(0, 255, 0, 0.4); 
+  transform: scale(1.1);
+}
+
+#noButton:hover {
+  background-color: rgba(255, 0, 0, 0.4);
 }
 
   </style>
 </head>
 <body>
 <div id="editor" contenteditable="true" spellcheck="false" placeholder="Введите текст для проверки..."></div>
+<div id="clownCount"></div>
+
+<div id="suggestNotification" class="suggest-notification">
+  <p>Add to keywords?</p>
+  <button id="yesButton">Yes</button>
+  <button id="noButton">No</button>
+</div>
 
 <div id="clownCount"></div>
 
-<div class="notification" id="notification"></div>
-  <script>
-	retardedKeywords = [
-		'free palestine', 'trans', 'they/them', 'she/her', 
-		'she/he', 'xe/xem', 'ze/zir', 'ey/em', '🇵🇸', '🏳️‍⚧️', 'any/all', '🏳️‍🌈', 'pronouns', 'транс', 'FreePalestine', 'they', 'LGBTQ', 'free Palestine',
-		'𝐋𝐆𝐁𝐓', '𝗟𝗚𝗕𝗧', '𝐿𝐺𝐵𝑇', '𝑳𝑮𝑩𝑻', '𝗟𝗚𝗕𝗧', 
-		'gender fluid', 'nonbinary', 'cis', 'cisgender', 'genderqueer', 'agender', 'bigender', 'two-spirit', 'binary', 'gender-neutral',
-		'intersectionality', 'queer', 'fluidity', 'neopronouns', 'demiboy', 'demigirl', 'fae/faer', 'it/its', 'she/her', 'they/them',
-		'🏳️‍⚧', '🌈', 'pride', 'pridemonth', 'transgender', 'transsexual', ' HRT ', '𝘁𝗵𝗲𝘆', 'Pansexual', 'Polyamorous', 'гомофоб', 'трансфоб', 'фетфоб', 'ейджист',
-		'ейбліст', 'мізогін', 'слюр',
-		'INTJ', 'INTP', 'ENTJ', 'ENTP', 'INFJ', 'INFP', 'ENFJ', 'ENFP',
-		'ISFJ', 'ISFP', 'ESFJ', 'ESFP', 'ISTJ', 'ISTP', 'ESTJ', 'ESTP',
-		'INTJ-A', 'INTJ-T', 'INTP-A', 'INTP-T', 'ENTJ-A', 'ENTJ-T', 'ENTP-A', 'ENTP-T',
-		'INFJ-A', 'INFJ-T', 'INFP-A', 'INFP-T', 'ENFJ-A', 'ENFJ-T', 'ENFP-A', 'ENFP-T',
-		'ISFJ-A', 'ISFJ-T', 'ISFP-A', 'ISFP-T', 'ESFJ-A', 'ESFJ-T', 'ESFP-A', 'ESFP-T', 
-		'ISTJ-A', 'ISTJ-T', 'ISTP-A', 'ISTP-T', 'ESTJ-A', 'ESTJ-T', 'ESTP-A', 'ESTP-T'
-	];
-	  </script>
+<div id="notification" class="notification">
+    <p></p>
+</div>
+
+<button onclick="copyKeywords()">Copy keywords</button>
+
+
+<button onclick="fetchLastUntermenschen()">Fetch last untermenschen</button>
 <script>
+  async function fetchLastUntermenschen() {
+    try {
+      const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://t.me/s/cringe14taster88')}`);
+      const data = await response.json();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(data.contents, 'text/html');
+      const lastPost = doc.querySelectorAll('.tgme_widget_message');
+      const lastPostElement = lastPost[lastPost.length - 1];
+      const messageTextElement = lastPostElement.querySelector('.tgme_widget_message_text');
+      const postText = messageTextElement.innerHTML.trim(); //
+      document.getElementById('editor').innerHTML = postText;
+      
+      highlightText();
+    } catch (error) {
+      console.error('Error fetching the last post:', error);
+    }
+  }
+</script>
+
+
+</body>
+</html>
+<script>
+<!-----------------------------------------------------------------------------------------------------------------------------------------------------!>
+<!-----------------------------------------------------------------------------------------------------------------------------------------------------!>
+<!-----------------------------------------------------------------------------------------------------------------------------------------------------!>
+
+const retardedKeywords = [
+'гендерно-нейтральний', 'гендерно-нейтральный', 'интерсекциональность', 'intersectionality', 'free palestine', 'gender-neutral', 'месяц гордости',
+'FreePalestine', 'вона/він/вони', 'freepalestine', 'freepalestine', 'месяцгордости', 'freepalestine', 'месяцгордости',
+'freepalestine', 'месяцгордости', 'freepalestine', 'месяцгордости', 'freepalestine', 'месяцгордости', 'freepalestine',
+'месяцгордости', 'транссексуал', 'gender fluid', 'транссексуал', 'гендерфлюїд', 'неопронouns', 'трансгендер',
+'genderqueer', 'neopronouns', 'transgender', 'transsexual', 'гендерфлюід', 'гендерфлюид', 'трансгендер',
+'нейровідмін', 'genderfluid', 'genderfluid', 'genderfluid', 'genderfluid', 'genderfluid', 'genderfluid',
+'genderfluid', 'займенники', 'экстраверт', 'екстраверт', 'гендерквір', 'флюїдність', 'пансексуал',
+'two-spirit', 'pridemonth', 'небинарный', 'гендерквир', 'флюидность', 'пансексуал', 'вони/вона',
+'they/them', 'цисгендер', 'вона/воно', 'вона/вона', 'вони/вони', 'extrovert', 'extravert',
+'nonbinary', 'cisgender', 'they/them', 'Pansexual', 'transphob', 'Бисексуал', '𝐋𝐆𝐁𝐓',
+'𝗟𝗚𝗕𝗧', '𝐿𝐺𝐵𝑇', '𝑳𝑮𝑩𝑻', 'вона/він', 'він/вони', 'pronouns',
+'бінарний', 'демігёрл', 'фае/фаер', 'поліамор', 'трансфоб', 'bigender', 'fluidity',
+'demigirl', 'fae/faer', 'polyamor', 'homophob', 'лесбійка', 'бигендер', 'два духа',
+'демигёрл', 'гордость', 'полиамор', 'трансфоб', 'Асексуал', 'меломан', 'мізогін',
+'she/her', 'any/all', 'агендер', 'гомофоб', 'ейблізм', 'agender',
+'demiboy', 'she/her', 'fatphob', 'ableism', 'агендер', 'небинар',
+'демибой', 'оно/оно', 'она/она', 'они/они', 'гомофоб', 'эйблизм', 'двадуха',
+'двадуха', 'двадуха', 'двадуха', 'двадуха', '🏳️‍🌈', '🏳️‍⚧️', 'she/he',
+'xe/xem', 'ze/zir', 'INTJ-A', 'INTJ-T', 'INTP-A', 'INTP-T', 'ENTJ-A',
+'ENTJ-T', 'ENTP-A', 'ENTP-T', 'INFJ-A', 'INFJ-T', 'INFP-A', 'INFP-T',
+'ENFJ-A', 'ENFJ-T', 'ENFP-A', 'ENFP-T', 'ISFJ-A', 'ISFJ-T', 'ISFP-A',
+'ISFP-T', 'ESFJ-A', 'ESFJ-T', 'ESFP-A', 'ESFP-T', 'ISTJ-A', 'ISTJ-T',
+'ISTP-A', 'ISTP-T', 'ESTJ-A', 'ESTJ-T', 'ESTP-A', 'ESTP-T', 'фетфоб',
+'расис', 'расист', 'сексиз', 'сексис', 'binary', 'it/its', 'фэтфоб', 'сексиз', 'trans', 'ey/em', 'LGBTQ', 'queer',
+'pride', 'racis', 'sexis', 'Аніме', '🇵🇸', 'слюр', 'INTJ',
+'INTP', 'ENTJ', 'ENTP', 'INFJ', 'INFP', 'ENFJ', 'ENFP',
+'slay', 'they', 'ISFJ', 'ISFP', 'ESFJ', 'ESFP', 'ISTJ',
+'ISTP', 'ESTJ', 'ESTP', 'IXTJ', 'лгбт', 'квір', 'lgbt',
+'квир', 'HRT', 'cis', 'цис',
+];
+const retardedKeywordsArray = [];
+
+retardedKeywordsArray.push(...retardedKeywords);
+retardedKeywordsArray.forEach(word => {
+  if (word.includes(' ')) {
+    retardedKeywordsArray.push(word.replace(/\s+/g, ''));
+  }
+  
+  const wordWithI = word.replace(/и/g, 'і');
+  if (word !== wordWithI) {
+    retardedKeywordsArray.push(wordWithI);
+  }
+});
+
+console.log(JSON.stringify(retardedKeywordsArray));
+
+<!-----------------------------------------------------------------------------------------------------------------------------------------------------!>
+<!-----------------------------------------------------------------------------------------------------------------------------------------------------!>
+<!-----------------------------------------------------------------------------------------------------------------------------------------------------!>
+
 const editor = document.getElementById('editor');
 const clownCount = document.getElementById('clownCount');
-let clown = 0; 
+let clown = 0;
+
+const suggestNotification = document.getElementById('suggestNotification');
+const yesButton = document.getElementById('yesButton');
+const noButton = document.getElementById('noButton');
+let selectedWord = "";
+
+const showSuggestion = (word) => {
+  selectedWord = word;
+  suggestNotification.style.display = 'block';
+  const xPos = event.clientX + window.scrollX;
+  const yPos = event.clientY + window.scrollY;
+
+  suggestNotification.style.position = 'absolute';
+  suggestNotification.style.top = `${yPos}px`;
+  suggestNotification.style.left = `${xPos}px`;
+};
+
+const addKeyword = (word) => {
+  if (!retardedKeywordsArray.includes(word)) {
+    retardedKeywordsArray.push(word);
+    retardedKeywordsArray.sort((a, b) => b.length - a.length); 
+    highlightText(); 
+  }
+};
+
+yesButton.addEventListener('click', () => {
+  addKeyword(selectedWord);
+  suggestNotification.style.display = 'none'; 
+});
+
+noButton.addEventListener('click', () => {
+  suggestNotification.style.display = 'none';
+});
+
+editor.addEventListener('contextmenu', (e) => {
+  const selectedText = window.getSelection().toString().trim();
+  if (selectedText) {
+    e.preventDefault();
+    showSuggestion(selectedText); 
+  }
+});
+
+<!-----------------------------------------------------------------------------------------------------------------------------------------------------!>
+<!-----------------------------------------------------------------------------------------------------------------------------------------------------!>
+<!-----------------------------------------------------------------------------------------------------------------------------------------------------!>
+
 
 const highlightText = () => {
   const text = editor.innerText;
   let highlightedText = text;
 
   clown = 0;
+  const matchedWords = new Set();
 
-  highlightedText = retardedKeywords.reduce((acc, word) => {
-    const regex = new RegExp(`(${word})`, 'gi');
+  const sortedKeywords = retardedKeywordsArray.sort((a, b) => b.length - a.length);
+
+  highlightedText = sortedKeywords.reduce((acc, word) => {
+    const regex = new RegExp(`(?<=^|\\s|[^\\wа-яА-Я])(${word}[\\p{L}]{0,3})(?=\\s|[^\\wа-яА-Я]|$)`, 'giu');
+
+    if (acc.includes(`<span class="highlight">${word}</span>`)) {
+      return acc;
+    }
+
     const matches = acc.match(regex);
     if (matches) {
-      clown += matches.length; 
+      matches.forEach(match => {
+        const baseWord = match.split(/\s/)[0]; 
+        if (!matchedWords.has(baseWord)) {
+          matchedWords.add(baseWord); 
+          clown++; 
+        }
+      });
     }
+
     return acc.replace(regex, '<span class="highlight">$1</span>');
   }, text);
 
   editor.innerHTML = highlightedText;
   placeCaretAtEnd(editor);
-  clownCount.innerHTML = '🤡'.repeat(clown); 
+  clownCount.innerHTML = '🤡'.repeat(clown);
 };
 
 const placeCaretAtEnd = (el) => {
@@ -165,4 +403,42 @@ const placeCaretAtEnd = (el) => {
 
 editor.addEventListener('input', highlightText);
 
+<!-----------------------------------------------------------------------------------------------------------------------------------------------------!>
+<!-----------------------------------------------------------------------------------------------------------------------------------------------------!>
+<!-----------------------------------------------------------------------------------------------------------------------------------------------------!>
+
+function showNotification(message) {
+    let formattedMessage = message
+    const notification = document.getElementById('notification');
+    notification.querySelector('p').innerHTML = formattedMessage;
+    notification.style.display = 'block';
+    notification.style.animation = 'fadeIn 0.5s ease-in-out';
+
+    setTimeout(() => {
+        notification.style.animation = 'fadeOut 0.5s ease-in-out';
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 500);
+    }, 2300);
+}
+
+function copyKeywords() {
+    const formattedKeywords = retardedKeywordsArray
+        .map(word => `'${word}'`)
+        .reduce((acc, word, index) => {
+            if (index % 7 === 0) acc.push([]);
+            acc[acc.length - 1].push(word);
+            return acc;
+        }, [])
+        .map(line => line.join(', ') + ',')
+        .join('\n');
+
+    navigator.clipboard.writeText(formattedKeywords)
+        .then(() => {
+            showNotification("Copied");
+        })
+        .catch(err => {
+            console.error("Error: ", err);
+        });
+}
 </script>
