@@ -203,6 +203,10 @@ button:focus {
 #noButton:hover {
   background-color: rgba(255, 0, 0, 0.4);
 }
+::selection {
+  background-color: rgba(0, 123, 255, 0.15); 
+  color: inherit; 
+}
 
   </style>
 </head>
@@ -266,25 +270,26 @@ const retardedKeywords = [
 'they/them', 'цисгендер', 'вона/воно', 'вона/вона', 'вони/вони', 'extrovert', 'extravert',
 'nonbinary', 'cisgender', 'they/them', 'pansexual', 'transphob', 'бисексуал', '𝐋𝐆𝐁𝐓',
 '𝗟𝗚𝗕𝗧', '𝐿𝐺𝐵𝑇', '𝑳𝑮𝑩𝑻', 'вона/він', 'він/вони', 'pronouns', 'бінарний',
-'демігёрл', 'фае/фаер', 'поліамор', 'трансфоб', 'bigender', 'fluidity', 'demigirl',
+'демігёрл', 'фае/фаер', 'поліамор', 'транс', 'bigender', 'fluidity', 'demigirl',
 'fae/faer', 'polyamor', 'homophob', 'лесбійка', 'бигендер', 'два духа', 'демигёрл',
 'гордость', 'полиамор', 'трансфоб', 'асексуал', 'меломан', 'мізогін', 'she/her',
 'any/all', 'агендер', 'гомофоб', 'ейблізм', 'agender', 'demiboy', 'she/her',
 'fatphob', 'ableism', 'агендер', 'небинар', 'демибой', 'оно/оно', 'она/она',
 'они/они', 'гомофоб', 'эйблизм', 'двадуха', 'двадуха', 'двадуха', 'двадуха',
 'двадуха', '🏳️‍🌈', '🏳️‍⚧️', 'she/he', 'xe/xem', 'ze/zir', 'intj-a',
-'intj-t', 'intp-a', 'intp-t', 'entj-a', 'entj-t', 'entp-a', 'entp-t',
-'infj-a', 'infj-t', 'infp-a', 'infp-t', 'enfj-a', 'enfj-t', 'enfp-a',
-'enfp-t', 'isfj-a', 'isfj-t', 'isfp-a', 'isfp-t', 'esfj-a', 'esfj-t',
-'esfp-a', 'esfp-t', 'istj-a', 'istj-t', 'istp-a', 'istp-t', 'estj-a',
-'estj-t', 'estp-a', 'estp-t', 'фетфоб', 'расис', 'расист', 'сексиз',
-'сексис', 'binary', 'it/its', 'фэтфоб', 'сексиз', 'trans', 'ey/em',
-'lgbtq', 'queer', 'pride', 'racis', 'sexis', '🇵🇸', 'интроверт',
-'слюр', 'intj', 'intp', 'entj', 'entp', 'infj', 'infp',
-'enfj', 'enfp', 'slay', 'they', 'isfj', 'isfp', 'esfj',
-'esfp', 'istj', 'istp', 'estj', 'estp', 'ixtj', 'лгбт',
-'квір', 'lgbt', 'квир', 'hrt', 'cis', 'цис', 'інтергендер',
-'🏳‍⚧', '🏳‍🌈', 'він/вони/вона',
+'амбиверт', 'intj-t', 'intp-a', 'intp-t', 'entj-a', 'entj-t', 'entp-a',
+'entp-t', 'infj-a', 'infj-t', 'infp-a', 'infp-t', 'enfj-a', 'enfj-t',
+'enfp-a', 'enfp-t', 'isfj-a', 'isfj-t', 'isfp-a', 'isfp-t', 'esfj-a',
+'esfj-t', 'esfp-a', 'esfp-t', 'istj-a', 'istj-t', 'istp-a', 'istp-t',
+'estj-a', 'estj-t', 'estp-a', 'estp-t', 'фетфоб', 'расис', 'расист',
+'сексиз', 'сексис', 'binary', 'it/its', 'фэтфоб', 'сексиз', 'trans',
+'ey/em', 'lgbtq', 'queer', 'pride', 'racis', 'sexis', '🇵🇸',
+'интроверт', 'слюр', 'intj', 'intp', 'entj', 'entp', 'infj',
+'infp', 'enfj', 'enfp', 'slay', 'they', 'isfj', 'isfp',
+'esfj', 'esfp', 'istj', 'istp', 'estj', 'estp', 'ixtj',
+'лгбт', 'квір', 'lgbt', 'квир', 'hrt', 'cis', 'цис',
+'інтергендер', '🏳‍⚧', '🏳‍🌈', 'він/вони/вона', 'він/вона', 'вона/вони', 'він/вона/вони',
+'трансдевушка', 'феміністка', 'вона/її',
 ];
 const retardedKeywordsArray = [];
 
@@ -379,36 +384,45 @@ editor.addEventListener('contextmenu', (e) => {
 const highlightText = () => {
   const text = editor.innerText;
 
-  clown = 0;
   const matchedWords = new Set();
 
   const sortedKeywords = retardedKeywordsArray.sort((a, b) => b.length - a.length);
 
   highlightedText = sortedKeywords.reduce((acc, word) => {
-    const regex = new RegExp(`(?<=^|\\s|[^\\wа-яА-Я])(${word}[\\p{L}]{0,3})(?=\\s|[^\\wа-яА-Я]|$)`, 'giu');
+    const isEmoji = /\p{Emoji}/u.test(word);
 
-    if (acc.includes(`<span class="highlight">${word}</span>`)) {
-      return acc;
+    if (isEmoji) {
+
+      return acc.replace(new RegExp(`(${word})`, 'g'), '<span class="highlight">$1</span>');
+    } else {
+      const regex = new RegExp(`(?<=^|\\s|[^\\wа-яА-Я])(${word}[\\p{L}]{0,3})(?=\\s|[^\\wа-яА-Я]|$)`, 'giu');
+
+      if (acc.includes(`<span class="highlight">${word}</span>`)) {
+        return acc;
+      }
+
+      const matches = acc.match(regex);
+      if (matches) {
+        matches.forEach(match => {
+          const baseWord = match.split(/\s/)[0];
+          if (!matchedWords.has(baseWord)) {
+            matchedWords.add(baseWord);
+          }
+        });
+      }
+
+      return acc.replace(regex, '<span class="highlight">$1</span>');
     }
-
-    const matches = acc.match(regex);
-    if (matches) {
-      matches.forEach(match => {
-        const baseWord = match.split(/\s/)[0]; 
-        if (!matchedWords.has(baseWord)) {
-          matchedWords.add(baseWord); 
-          clown++; 
-        }
-      });
-    }
-
-    return acc.replace(regex, '<span class="highlight">$1</span>');
   }, text);
+
+  const highlightCount = (highlightedText.match(/<span class="highlight">/g) || []).length;
+  const clownCountDisplay = '🤡'.repeat(highlightCount);
+  clownCount.innerHTML = clownCountDisplay;
 
   editor.innerHTML = highlightedText;
   placeCaretAtEnd(editor);
-  clownCount.innerHTML = '🤡'.repeat(clown);
 };
+
 
 const placeCaretAtEnd = (el) => {
   const range = document.createRange();
